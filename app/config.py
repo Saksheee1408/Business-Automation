@@ -6,7 +6,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "scraper_db")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 CRAWL_DELAY = float(os.getenv("CRAWL_DELAY", 1.5))
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", 15))

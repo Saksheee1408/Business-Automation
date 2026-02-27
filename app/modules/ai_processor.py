@@ -1,18 +1,22 @@
 import json
-import google.generativeai as genai
+from openai import OpenAI
 from loguru import logger
-from app.config import GEMINI_API_KEY
+from app.config import GROQ_API_KEY
 
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+client = None
+if GROQ_API_KEY:
+    client = OpenAI(
+        api_key=GROQ_API_KEY,
+        base_url="https://api.groq.com/openai/v1",
+    )
 else:
-    logger.warning("No GEMINI_API_KEY found. AI functions will fail.")
+    logger.warning("No GROQ_API_KEY found. AI functions will fail.")
 
 def analyze_business_profile(title: str, description: str, raw_text: str) -> dict:
     """Uses Gemini to clean, summarize, classify text, and extract services."""
-    logger.info("Sending raw text to Gemini for intelligent extraction...")
+    logger.info("Sending raw text to Groq for intelligent extraction...")
     
-    if not GEMINI_API_KEY:
+    if not client:
         logger.error("Skipping AI step — no API key provided.")
         return {}
 
@@ -40,19 +44,18 @@ def analyze_business_profile(title: str, description: str, raw_text: str) -> dic
     """
     
     try:
-        # Use JSON mime type to guarantee valid JSON string
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
         )
         
-        result = json.loads(response.text)
-        logger.success("Successfully processed unstructured data through Gemini!")
+        result = json.loads(response.choices[0].message.content)
+        logger.success("Successfully processed unstructured data through Groq!")
         return result
         
     except Exception as e:
-        logger.error(f"Failed to process via Gemini: {e}")
+        logger.error(f"Failed to process via Groq: {e}")
         return {
             "industry": None,
             "business_type": None,
